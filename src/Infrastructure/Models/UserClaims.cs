@@ -1,0 +1,1 @@
+namespace WarHack.Infrastructure.Models;
