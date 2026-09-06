@@ -20,3 +20,7 @@ html {
 body {
   margin-bottom: 60px;
 }
+/* WoW epic quality — Bootstrap has no purple text utility */
+.text-purple {
+  color: #a335ee;
+}

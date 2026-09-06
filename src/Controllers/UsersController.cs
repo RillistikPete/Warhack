@@ -1,9 +1,10 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WarHack.Identity;
+using WarHack.Domain;
 
 namespace WarHack.Controllers;
 

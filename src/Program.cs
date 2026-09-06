@@ -1,15 +1,17 @@
-namespace WarHack;
+﻿namespace WarHack;
 
 using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
+using WarHack.Configuration;
 using WarHack.Identity;
+using WarHack.Options;
 public class Program
 {
     public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        StartupOptions.ConfigureServices(builder.Services, builder.Configuration);
+        builder.Services.AddWarHackServices(builder.Configuration);
 
         var path = builder.Configuration
             .GetSection(nameof(AppConfigOptions))
@@ -51,49 +53,3 @@ public class Program
         await app.RunAsync();
     }
 }
-
-/*
-public class ConfigurationMgmt(IConfiguration config) : IConfigurationStore
-{
-    private readonly IConfiguration _config = config;
-
-    public string GetConfiguration<T>() where T : new()
-    {
-        const string fnName = nameof(this.GetConfiguration);
-        var sec = _config.Get<T>();
-        //return sec.GetProperties();
-        // var typee = t.GetType();
-        // return 
-        return "";
-    
-    }
-}
-
-public class ConfigurationMgmt(IConfigurationRoot config) : IConfigurationStore
-{
-    private readonly IConfigurationRoot _cr = config;
-    
-    //OLD
-    public string GetSectionKV(string section, string key)
-    {
-        const string fnName = nameof(this.GetSectionKV);
-        string? value = _cr.GetValue<string>(section + ":" + key);
-
-        // Configuration config =
-        //     ConfigurationManager.OpenExeConfiguration(ConfigurationUsesrLevel.None);
-
-        // AppSettingsSection appSettings =
-        //     (AppSettingsSection)config.GetSection(key);
-        
-        if(!string.IsNullOrEmpty(value) && !string.IsNullOrWhiteSpace(value))
-        {
-            return value;
-        }
-        else
-        {
-            return $"{fnName}-key:{key}|value: NULL";
-        }
-    }
-   
-}
-*/

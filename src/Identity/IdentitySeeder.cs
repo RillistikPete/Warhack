@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using WarHack.Data;
 
 public static class WarHackRoles
 {
@@ -15,14 +16,14 @@ public class IdentitySeeder
 {
     private readonly RoleManager<IdentityRole> _roles;
     private readonly UserManager<WarHackUser> _users;
-    private readonly ApplicationDbContext _db;
+    private readonly WarHackDbContext _db;
     private readonly IConfiguration _config;
     private readonly ILogger<IdentitySeeder> _logger;
 
     public IdentitySeeder(
         RoleManager<IdentityRole> roles,
         UserManager<WarHackUser> users,
-        ApplicationDbContext db,
+        WarHackDbContext db,
         IConfiguration config,
         ILogger<IdentitySeeder> logger)
     {

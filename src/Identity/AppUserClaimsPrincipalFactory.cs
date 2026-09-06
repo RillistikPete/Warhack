@@ -1,7 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using WarHack.Identity;
+using WarHack.Domain;
+
+namespace WarHack.Identity;
+
 
 public class AppUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<WarHackUser, IdentityRole>
 {

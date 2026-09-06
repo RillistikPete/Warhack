@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.5.002.0
+# Visual Studio Version 18
+VisualStudioVersion = 18.9.12120.119 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WarHack", "WarHack.csproj", "{4A73E6A5-CE37-4C04-B525-8AEFE06863C5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B95BFB41-F573-4C7E-BA79-45171D9DF15E}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

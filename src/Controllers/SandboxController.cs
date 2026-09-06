@@ -1,8 +1,9 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using WarHack.Logging;
 using WarHack.Models;
 
 namespace WarHack.Controllers;

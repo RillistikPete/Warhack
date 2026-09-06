@@ -1,4 +1,4 @@
-@model WarHack.Infrastructure.Models.LoginModel
+﻿@model WarHack.Models.LoginModel
 
 @{
     ViewData["Title"] = "Login";
@@ -32,12 +32,13 @@
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Login</button>
-
-            <hr />
-            <a asp-action="Register" class="text-decoration-none">
-                Don't have an account? Register
-            </a>
         </form>
+
+        <hr />
+        <p class="text-center mb-0">
+            <span class="text-muted">Don't have an account?</span>
+            <a asp-action="Register" class="text-decoration-none">Sign up</a>
+        </p>
     </div>
 </div>
 

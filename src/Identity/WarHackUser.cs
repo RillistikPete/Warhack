@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using WarHack.Domain;
 
 namespace WarHack.Identity
 {
