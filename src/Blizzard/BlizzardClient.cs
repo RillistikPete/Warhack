@@ -6,16 +6,9 @@ using WarHack.Domain;
 
 namespace WarHack.Blizzard;
 
-/// <summary>
-/// Typed HttpClient for the Blizzard API. The HttpClient handed in by DI is already
-/// configured with the base address, the auth handler, timing and the resilience
-/// pipeline, so this class only deals with URIs, serialization and results.
-/// </summary>
 public sealed class BlizzardClient : IBlizzardClient
 {
-    // Blizzard speaks snake_case (average_item_level, equipped_items, ...).
-    // Setting the policy once here means the DTOs stay clean C# names with no
-    // [JsonPropertyName] on every property.
+    // Blizzard uses snake_case
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
@@ -107,7 +100,6 @@ public sealed class BlizzardClient : IBlizzardClient
             : ApiResult<T>.Ok(value, status);
     }
 
-    /// <summary>Appends the caller's query values plus Blizzard's required namespace/locale.</summary>
     private string BuildUri(string resourceUri, IReadOnlyDictionary<string, string?>? query)
     {
         var values = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase)
@@ -133,7 +125,6 @@ public sealed class BlizzardClient : IBlizzardClient
         return ApiResult<T>.Fail(ex.Message);
     }
 
-    /// <summary>True for real faults. Cancellation the caller asked for is rethrown, not swallowed.</summary>
     private static bool NotCancellation(Exception ex, CancellationToken ct)
         => !(ex is OperationCanceledException && ct.IsCancellationRequested);
 

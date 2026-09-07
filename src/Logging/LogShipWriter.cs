@@ -1,12 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
 using WarHack.Data;
 
 namespace WarHack.Logging;
 
 /// <summary>
 /// Drains the log channel into Postgres in batches. One scope and one round trip per
-/// batch, off the request path. Replaces the old static LoggerLQ, which opened a
-/// DbContext per message and serialized every caller behind a global lock.
+/// batch, off the request path. Replaces a global lock.
 /// </summary>
 public sealed class LogShipWriter : BackgroundService
 {
@@ -26,34 +24,65 @@ public sealed class LogShipWriter : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var batch = new List<LogQueue>(MaxBatch);
-
-        while (await _channel.Reader.WaitToReadAsync(stoppingToken))
+        try
         {
-            batch.Clear();
-
-            while (batch.Count < MaxBatch && _channel.Reader.TryRead(out var entry))
-                batch.Add(entry);
-
-            if (batch.Count == 0) continue;
-
-            try
+            // Returns false once the writer is completed
+            while (await _channel.Reader.WaitToReadAsync(stoppingToken))
             {
-                using var scope = _scopeFactory.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<WarHackDbContext>();
-                db.LogQueue.AddRange(batch);
-                await db.SaveChangesAsync(stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, "Failed to ship {Count} log rows.", batch.Count);
-            }
+                var batch = SendUpToBatch();
+                if (batch.Count == 0) continue;
 
-            await Task.Delay(FlushInterval, stoppingToken);
+                await WriteAsync(batch, stoppingToken);
+                await Task.Delay(FlushInterval, stoppingToken);
+            }
+        }
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Runs when the host is shutting down
+    /// </summary>
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _channel.Writer.TryComplete();
+
+        await base.StopAsync(cancellationToken);
+
+        var remaining = SendUpToBatch(int.MaxValue);
+        if (remaining.Count > 0)
+        {
+            _log.LogInformation("Shutting down: flushing {Count} queued log rows.", remaining.Count);
+            await WriteAsync(remaining, cancellationToken);
+        }
+    }
+
+    /// <summary>Synchronously takes whatever is already queued.</summary>
+    private List<LogQueue> SendUpToBatch(int max = MaxBatch)
+    {
+        var batch = new List<LogQueue>(Math.Min(max, MaxBatch));
+        while (batch.Count < max && _channel.Reader.TryRead(out var entry))
+            batch.Add(entry);
+        return batch;
+    }
+
+    private async Task WriteAsync(List<LogQueue> batch, CancellationToken ct)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<WarHackDbContext>();
+            db.LogQueue.AddRange(batch);
+            await db.SaveChangesAsync(ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            _log.LogWarning("Shutdown cancelled a write of {Count} log rows.", batch.Count);
+        }
+        catch (Exception ex)
+        {
+            _log.LogError(ex, "Failed to ship {Count} log rows.", batch.Count);
         }
     }
 }

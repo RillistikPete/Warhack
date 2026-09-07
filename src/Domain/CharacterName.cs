@@ -8,7 +8,7 @@ namespace WarHack.Domain;
 /// </summary>
 public sealed record CharacterName
 {
-    /// <summary>Blizzard's cap, and a cheap guard against junk input.</summary>
+    /// <summary>Blizzard's cap</summary>
     private const int MaxLength = 12;
 
     private CharacterName(string display, string value)
@@ -17,15 +17,23 @@ public sealed record CharacterName
         Value = value;
     }
 
-    /// <summary>Trimmed, title-cased for display.</summary>
     public string Display { get; }
 
-    /// <summary>Lowercased, for building request URIs.</summary>
+    /// <summary>
+    /// Validation object
+    /// </summary>
     public string Value { get; }
 
-    /// <summary>Percent-encoded, safe to concatenate into a path.</summary>
     public string UriSegment => Uri.EscapeDataString(Value);
 
+
+    /// <summary>
+    /// From a string
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns>CharacterName</returns>
+    /// <if>validation passes</if>
+    /// <exception cref="ArgumentException"></exception>
     public static CharacterName From(string input) =>
         TryFrom(input, out var name)
             ? name
@@ -39,7 +47,6 @@ public sealed record CharacterName
         var trimmed = input.Trim();
         if (trimmed.Length > MaxLength) return false;
 
-        // Letters only -- covers accented realms; rejects the injection-shaped input.
         if (!trimmed.All(char.IsLetter)) return false;
 
         var lower = trimmed.ToLowerInvariant();

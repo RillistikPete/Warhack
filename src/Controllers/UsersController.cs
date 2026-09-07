@@ -74,8 +74,8 @@ public class UsersController : ControllerBase
         });
     }
 
-    //update user?
     [HttpPut("update/{id}")]
+    [Authorize(Policy = "IsAdmin")]
     public async Task<IActionResult> PutUser(string id, WarHackUser user)
     {
         var usr = await _users.FindByIdAsync(id);
@@ -103,10 +103,7 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// makes role changes take effect - 
-    /// granting a role doesn't touch the cookie the user is already carrying.
-    /// Rotating the stamp invalidates it, and SecurityStampValidator rebuilds
-    /// their principal through your claims factory on the next request.
+    /// makes role changes take effect
     /// </summary>
     /// <param name="id"></param>
     /// <param name="role"></param>

@@ -14,7 +14,6 @@ public class AuthGateway
         _next = next;
     }
 
-    // IMessageWriter is injected into InvokeAsync
     public async Task InvokeAsync(HttpContext httpContext, ILogShipHarbor ship)
     {
         if(httpContext.Request.Cookies.Count > 0)

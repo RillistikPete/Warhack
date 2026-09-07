@@ -24,11 +24,11 @@ public class CharacterController : Controller
         ViewData["Realm"] = realm;
         ViewData["Name"] = name;
 
-        // Empty form on first load -- no lookup, no wasted API call.
         if (string.IsNullOrWhiteSpace(realm) && string.IsNullOrWhiteSpace(name))
+        {
             return View(model: null);
+        }
 
-        // Value objects validate at creation, so bad input never reaches destination.
         if (!RealmSlug.TryFrom(realm, out var realmSlug))
         {
             ModelState.AddModelError(string.Empty, "That doesn't look like a realm name.");
@@ -45,10 +45,12 @@ public class CharacterController : Controller
 
         if (!result.IsSuccess)
         {
-            // 404 is a normal miss; anything else is worth having in the log table.
+            // 404 is a normal misspelling.
             if (result.Status != 404)
+            {
                 _ship.Ship($"Character lookup failed ({result.Status}) for {realm}/{name}: {result.Error}",
                            "Warning", nameof(CharacterController));
+            }
 
             ModelState.AddModelError(string.Empty, result.Error ?? "Lookup failed.");
             return View(model: null);

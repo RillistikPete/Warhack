@@ -1,9 +1,6 @@
 ﻿namespace WarHack.Blizzard.Contracts;
 
-// Partial maps of the Blizzard Character Profile API. Only the fields WarHack
-// renders are declared -- System.Text.Json ignores everything else, so adding a
-// field later is a one-line change. Property names are C#; the snake_case
-// mapping happens via the naming policy on BlizzardClient's JsonSerializerOptions.
+// Partial maps
 
 /// <summary>Named reference used all over the API (race, class, spec, realm...).</summary>
 public sealed record NamedRef(int Id, string? Name, string? Slug);
@@ -43,10 +40,10 @@ public sealed record CharacterStatistics(
     RatedStat? Lifesteal,
     RatedStat? Avoidance);
 
-/// <summary>A primary stat: what the character sheet calls base vs effective.</summary>
+/// <summary>A primary stat</summary>
 public sealed record StatValue(long Base, long Effective);
 
-/// <summary>A secondary stat: rating plus the percentage it buys.</summary>
+/// <summary>A secondary stat</summary>
 public sealed record RatedStat(long Rating, double RatingBonus, double Value);
 
 /// <summary>GET .../equipment</summary>
@@ -62,14 +59,8 @@ public sealed record EquippedItem(
     IReadOnlyList<ItemStat>? Stats);
 
 public sealed record ItemLevel(int Value, string? DisplayString);
-
-/// <summary>Blizzard hands back a rendered string -- exactly the "verbatim" summary we want.</summary>
 public sealed record Enchantment(string? DisplayString, int EnchantmentId);
-
 public sealed record Socket(NamedRef? SocketType, SocketItem? Item, string? DisplayString);
-
 public sealed record SocketItem(int Id, string? Name);
-
 public sealed record ItemStat(NamedRef? Type, long Value, StatDisplay? Display);
-
 public sealed record StatDisplay(string? DisplayString);

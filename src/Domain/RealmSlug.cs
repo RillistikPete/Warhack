@@ -3,14 +3,12 @@ using System.Text.RegularExpressions;
 
 namespace WarHack.Domain;
 
-/// <summary>
-/// A Blizzard realm slug: lowercase, hyphen-separated, no apostrophes.
-/// Construction is the only place normalization happens, so nothing downstream
-/// needs to remember to call ToLower() or strip punctuation.
-/// </summary>
 public sealed partial record RealmSlug
 {
-    private RealmSlug(string value) => Value = value;
+    private RealmSlug(string value)
+    {
+        Value = value;
+    }
 
     public string Value { get; }
 
@@ -36,8 +34,6 @@ public sealed partial record RealmSlug
     }
 
     public override string ToString() => Value;
-
-    public static implicit operator string(RealmSlug slug) => slug.Value;
 
     [GeneratedRegex("^[a-z0-9]+(-[a-z0-9]+)*$")]
     private static partial Regex SlugPattern();

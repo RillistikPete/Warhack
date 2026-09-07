@@ -21,10 +21,5 @@ public sealed class BlizzardOptions
     /// <summary>Refresh the token this long before it actually expires.</summary>
     public TimeSpan TokenRefreshSkew { get; init; } = TimeSpan.FromMinutes(2);
 
-    /// <summary>
-    /// How long a composed character view stays cached. Character data only changes
-    /// when the player logs out, so minutes are fine and it collapses the refresh
-    /// spam that a reference site attracts.
-    /// </summary>
     public TimeSpan CharacterCacheDuration { get; init; } = TimeSpan.FromMinutes(5);
 }

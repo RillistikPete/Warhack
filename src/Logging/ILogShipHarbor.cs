@@ -4,7 +4,7 @@ namespace WarHack.Logging;
 
 public interface ILogShipHarbor
 {
-    /// <summary>Write to the normal ILogger pipeline (console, Azure, wherever it's wired).</summary>
+    /// <summary>Write to the normal ILogger pipeline </summary>
     void PrintToOut(string message);
 
     /// <summary>
@@ -20,7 +20,7 @@ public sealed class LogShipChannel
     private readonly Channel<LogQueue> _channel = Channel.CreateBounded<LogQueue>(
         new BoundedChannelOptions(capacity: 2048)
         {
-            // Never block the request thread. Under a flood, drop the oldest queued row.
+            // Never block the request thread, drop the oldest queued row.
             FullMode = BoundedChannelFullMode.DropOldest,
             SingleReader = true
         });
@@ -53,8 +53,7 @@ public sealed class Logship : ILogShipHarbor
             Logger = logger ?? nameof(Logship)
         };
 
-        // TryWrite, not WriteAsync: logging must never be able to stall the caller.
         if (!_channel.Writer.TryWrite(entry))
-            _logger.LogWarning("Log ship queue full; dropped a row.");
+            _logger.LogWarning("Log ship channel closed; row not queued: {Message}", message);
     }
 }

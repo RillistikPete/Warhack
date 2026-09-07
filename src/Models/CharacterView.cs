@@ -3,10 +3,6 @@ using WarHack.Domain;
 
 namespace WarHack.Models;
 
-/// <summary>
-/// Everything one character page needs, already flattened. Views never touch the
-/// Blizzard DTOs -- if Blizzard reshapes a response, the change stops here.
-/// </summary>
 public sealed class CharacterView
 {
     public required string Name { get; init; }

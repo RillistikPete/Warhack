@@ -21,13 +21,11 @@ public sealed class AsyncRequestHost : DelegatingHandler
 
             if (response.IsSuccessStatusCode)
             {
-                _log.LogDebug("{Method} {Uri} -> {Status} in {Elapsed}ms",
-                    reqMsg.Method, reqMsg.RequestUri, (int)response.StatusCode, sw.ElapsedMilliseconds);
+                _log.LogDebug("{Method} {Uri} -> {Status} in {Elapsed}ms", reqMsg.Method, reqMsg.RequestUri, (int)response.StatusCode, sw.ElapsedMilliseconds);
             }
             else
             {
-                _log.LogWarning("{Method} {Uri} -> {Status} in {Elapsed}ms",
-                    reqMsg.Method, reqMsg.RequestUri, (int)response.StatusCode, sw.ElapsedMilliseconds);
+                _log.LogWarning("{Method} {Uri} -> {Status} in {Elapsed}ms", reqMsg.Method, reqMsg.RequestUri, (int)response.StatusCode, sw.ElapsedMilliseconds);
             }
 
             return response;
@@ -36,8 +34,7 @@ public sealed class AsyncRequestHost : DelegatingHandler
         {
             sw.Stop();
             // Log and rethrow.
-            _log.LogError(ex, "{Method} {Uri} threw after {Elapsed}ms",
-                reqMsg.Method, reqMsg.RequestUri, sw.ElapsedMilliseconds);
+            _log.LogError(ex, "{Method} {Uri} threw after {Elapsed}ms", reqMsg.Method, reqMsg.RequestUri, sw.ElapsedMilliseconds);
             throw;
         }
     }

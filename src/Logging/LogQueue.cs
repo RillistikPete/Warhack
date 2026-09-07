@@ -2,7 +2,7 @@
 
 namespace WarHack.Logging;
 
-/// <summary>One shipped log row. Stored UTC; render in local time at the edge.</summary>
+/// <summary>One shipped log row</summary>
 public class LogQueue
 {
     public int Id { get; set; }
