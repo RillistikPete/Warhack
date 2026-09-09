@@ -1,29 +1,25 @@
 ﻿
-using System.Diagnostics;
-using WarHack.Logging;
-
 namespace WarHack.Middleware;
-
 
 public class AuthGateway
 {
     private readonly RequestDelegate _next;
+    private readonly ILogger<AuthGateway> _logger;
 
-    public AuthGateway(RequestDelegate next)
+    public AuthGateway(RequestDelegate next, ILogger<AuthGateway> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext httpContext, ILogShipHarbor ship)
+    public async Task InvokeAsync(HttpContext httpContext)
     {
-        if(httpContext.Request.Cookies.Count > 0)
+        if (_logger.IsEnabled(LogLevel.Debug) && httpContext.Request.Cookies.Count > 0)
         {
-            foreach(var i in httpContext.Request.Cookies)
-            {
-                Debug.WriteLine($"\\n httpcontext request cookie - Key: {i.Key} - Val: {i.Value}");
-            }
+            _logger.LogDebug("Request cookies: {CookieNames}",
+                string.Join(", ", httpContext.Request.Cookies.Keys));
         }
-        ship.PrintToOut("Lovely day " + DateTime.Now.ToShortDateString());
+
         await _next(httpContext);
     }
 }

@@ -1,8 +1,5 @@
 ﻿namespace WarHack.Domain;
 
-/// <summary>
-/// The outcome of an external API call. Owns no streams and needs no disposal.
-/// </summary>
 public readonly record struct ApiResult<T>(bool IsSuccess, T? Value, int Status, string? Error)
 {
     public static ApiResult<T> Ok(T value, int status = 200) => new(true, value, status, null);

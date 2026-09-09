@@ -18,7 +18,7 @@ public class AppUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<WarHackU
     {
         var identity = await base.GenerateClaimsAsync(user);
 
-        //validation and null checking
+        // validation and null checking
         if (!string.IsNullOrWhiteSpace(user.BattleTag))
             identity.AddClaim(new Claim("battletag", user.BattleTag));
 

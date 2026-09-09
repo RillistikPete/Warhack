@@ -26,7 +26,6 @@ public sealed partial record RealmSlug
             .Replace("'", "")
             .Replace(" ", "-");
 
-        // Blizzard slugs are ASCII letters, digits and hyphens.
         if (!SlugPattern().IsMatch(normalized)) return false;
 
         slug = new RealmSlug(normalized);

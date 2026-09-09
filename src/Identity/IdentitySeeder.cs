@@ -49,7 +49,10 @@ public class IdentitySeeder
 
             var result = await _roles.CreateAsync(new IdentityRole(role));
             if (result.Succeeded)
-                _logger.LogInformation("Created role {Role}.", role);
+            {
+                string message = $"Created role {role}.";
+                _logger.LogInformation(message);
+            }
             else
                 _logger.LogError("Could not create role {Role}: {Errors}",
                     role, string.Join("; ", result.Errors.Select(e => e.Description)));
@@ -65,7 +68,7 @@ public class IdentitySeeder
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
-            _logger.LogInformation("No SeedAdmin configured — skipping admin seed.");
+            _logger.LogInformation($"No SeedAdmin configured — skipping admin seed.");
             return;
         }
 
@@ -88,14 +91,14 @@ public class IdentitySeeder
                 return;
             }
 
-            _logger.LogInformation("Created seed admin {Email}.", email);
+            _logger.LogInformation($"Created seed admin {email}.");
         }
 
         if (!await _users.IsInRoleAsync(admin, WarHackRoles.Admin))
         {
             await _users.AddToRoleAsync(admin, WarHackRoles.Admin);
             await _users.UpdateSecurityStampAsync(admin);
-            _logger.LogInformation("Granted Admin to {Email}.", email);
+            _logger.LogInformation($"Granted Admin to {email}.");
         }
     }
 }

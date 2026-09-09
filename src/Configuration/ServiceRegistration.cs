@@ -15,12 +15,9 @@ namespace WarHack.Configuration
 {
     public static class ServiceRegistration
     {
-        public static IServiceCollection AddWarHackServices(
-            this IServiceCollection svcCollection, IConfiguration cf)
+        public static IServiceCollection AddWarHackServices(this IServiceCollection svcCollection, IConfiguration cf)
         {
-
             svcCollection.AddTransient<IStartupFilter, Intercessors>();
-            svcCollection.Configure<HomeControllerSettings>(cf.GetSection("AppSettings"));
 
             svcCollection.AddControllersWithViews();
             svcCollection.AddRazorPages();
@@ -55,8 +52,11 @@ namespace WarHack.Configuration
             // Logging
             svcCollection.AddSingleton<LogShipChannel>();
             svcCollection.AddHostedService<LogShipWriter>();
-            svcCollection.AddScoped<ILogShipHarbor, Logship>();
+            svcCollection.AddSingleton<ILogShipHarbor, LogShipHarbor>();
+            svcCollection.Configure<LogRetentionOptions>(cf.GetSection(LogRetentionOptions.SectionName));
+            svcCollection.AddHostedService<LogRetentionService>();
 
+            // Swagger
             svcCollection.AddSwaggerGen(options =>
             {
                 options.AddSecurityDefinition("apikey", new OpenApiSecurityScheme
@@ -110,7 +110,7 @@ namespace WarHack.Configuration
                 o.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
                 o.CircuitBreaker.FailureRatio = 0.5;
                 o.CircuitBreaker.MinimumThroughput = 10;
-            })
+            });
 
             return svcCollection;
         }

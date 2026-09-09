@@ -33,7 +33,6 @@ public sealed record CharacterName
     /// <param name="input"></param>
     /// <returns>CharacterName</returns>
     /// <if>validation passes</if>
-    /// <exception cref="ArgumentException"></exception>
     public static CharacterName From(string input) =>
         TryFrom(input, out var name)
             ? name

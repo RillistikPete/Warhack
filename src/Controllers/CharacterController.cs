@@ -11,11 +11,16 @@ public class CharacterController : Controller
 {
     private readonly IAthenaeum _athenaeum;
     private readonly ILogShipHarbor _ship;
+    private readonly ILogger<CharacterController> _logger;
 
-    public CharacterController(IAthenaeum athenaeum, ILogShipHarbor ship)
+    public CharacterController(
+        IAthenaeum athenaeum,
+        ILogShipHarbor ship,
+        ILogger<CharacterController> logger)
     {
         _athenaeum = athenaeum;
         _ship = ship;
+        _logger = logger;
     }
 
     [HttpGet(""), AllowAnonymous]
@@ -29,6 +34,7 @@ public class CharacterController : Controller
             return View(model: null);
         }
 
+        // might remove realm here, search by name only
         if (!RealmSlug.TryFrom(realm, out var realmSlug))
         {
             ModelState.AddModelError(string.Empty, "That doesn't look like a realm name.");
@@ -45,11 +51,12 @@ public class CharacterController : Controller
 
         if (!result.IsSuccess)
         {
-            // 404 is a normal misspelling.
+            // 404 is a normal misspelling
             if (result.Status != 404)
             {
-                _ship.Ship($"Character lookup failed ({result.Status}) for {realm}/{name}: {result.Error}",
-                           "Warning", nameof(CharacterController));
+                _logger.LogWarning("Character lookup failed ({Status}) for {Realm}/{Name}: {Error}",
+                    result.Status, realm, name, result.Error);
+                _ship.Ship($"Character lookup failed ({result.Status}) for {realm}/{name}: {result.Error}", "Warning", nameof(CharacterController));
             }
 
             ModelState.AddModelError(string.Empty, result.Error ?? "Lookup failed.");

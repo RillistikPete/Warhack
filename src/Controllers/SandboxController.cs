@@ -10,10 +10,9 @@ namespace WarHack.Controllers;
 
 public class SandboxController : Controller
 {
-    private readonly ILogger<ILogShipHarbor> _logger;
-    //private SandboxControllerSettings _settings;
+    private readonly ILogger<SandboxController> _logger;
 
-    public SandboxController(ILogger<ILogShipHarbor> logger)
+    public SandboxController(ILogger<SandboxController> logger)
     {
         _logger = logger;
     }

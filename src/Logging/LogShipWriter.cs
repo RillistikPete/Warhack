@@ -2,10 +2,6 @@ using WarHack.Data;
 
 namespace WarHack.Logging;
 
-/// <summary>
-/// Drains the log channel into Postgres in batches. One scope and one round trip per
-/// batch, off the request path. Replaces a global lock.
-/// </summary>
 public sealed class LogShipWriter : BackgroundService
 {
     private static readonly TimeSpan FlushInterval = TimeSpan.FromSeconds(2);
@@ -58,7 +54,6 @@ public sealed class LogShipWriter : BackgroundService
         }
     }
 
-    /// <summary>Synchronously takes whatever is already queued.</summary>
     private List<LogQueue> SendUpToBatch(int max = MaxBatch)
     {
         var batch = new List<LogQueue>(Math.Min(max, MaxBatch));

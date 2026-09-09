@@ -2,9 +2,6 @@
 
 namespace WarHack.Http;
 
-/// <summary>
-/// Outbound request timing/diagnostics.
-/// </summary>
 public sealed class AsyncRequestHost : DelegatingHandler
 {
     private readonly ILogger<AsyncRequestHost> _log;

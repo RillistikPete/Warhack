@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WarHack.Identity;
@@ -14,15 +13,18 @@ public class AccountController : Controller
     private readonly SignInManager<WarHackUser> _signInManager;
     private readonly UserManager<WarHackUser> _userManager;
     private readonly ILogShipHarbor _logBoat;
+    private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         SignInManager<WarHackUser> signInManager,
         UserManager<WarHackUser> userManager,
-        ILogShipHarbor ship)
+        ILogShipHarbor ship,
+        ILogger<AccountController> logger)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _logBoat = ship;
+        _logger = logger;
     }
 
     [HttpGet("login"), AllowAnonymous]
@@ -42,22 +44,22 @@ public class AccountController : Controller
 
         if (result.Succeeded)
         {
-            _logBoat.PrintToOut($"User {model.UserName} signed in.");
+            _logger.LogInformation("User {User} signed in.", model.UserName);
             _logBoat.Ship($"Sign-in succeeded for {model.UserName}.", logger: nameof(AccountController));
             return LocalRedirect(returnUrl ?? Url.Action("Index", "Home")!);
         }
 
         if (result.IsLockedOut)
         {
-            _logBoat.PrintToOut($"Account locked out: {model.UserName}.");
+            _logger.LogWarning("Account locked out: {User}.", model.UserName);
             _logBoat.Ship($"Account locked out: {model.UserName}.", "Warning", nameof(AccountController));
             ModelState.AddModelError(string.Empty, "Account locked. Try again later.");
             return View(model);
         }
 
-        _logBoat.PrintToOut($"Failed sign-in for {model.UserName}.");
+        _logger.LogWarning("Failed sign-in for {User}.", model.UserName);
         _logBoat.Ship($"Failed sign-in for {model.UserName}.", "Warning", nameof(AccountController));
-        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+        ModelState.AddModelError(string.Empty, "Could not login.");
         return View(model);
     }
 
@@ -87,7 +89,7 @@ public class AccountController : Controller
         await _userManager.AddToRoleAsync(user, WarHackRoles.Member);
         await _signInManager.SignInAsync(user, isPersistent: false);
 
-        _logBoat.Ship("New account created: {User}", user.UserName, logger: nameof(AccountController));
+        _logBoat.Ship($"New account created: {user.UserName}.", logger: nameof(AccountController));
         return RedirectToAction("Index", "Home");
     }
 

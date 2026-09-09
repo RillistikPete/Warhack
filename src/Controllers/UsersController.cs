@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WarHack.Identity;
 using WarHack.Domain;
+using WarHack.Logging;
 
 namespace WarHack.Controllers;
 
@@ -15,11 +16,16 @@ public class UsersController : ControllerBase
 {
     private readonly UserManager<WarHackUser> _users;
     private readonly ILogger<UsersController> _logger;
+    private readonly ILogShipHarbor _ship;
 
-    public UsersController(UserManager<WarHackUser> users, ILogger<UsersController> logger)
+    public UsersController(
+        UserManager<WarHackUser> users,
+        ILogger<UsersController> logger,
+        ILogShipHarbor ship)
     {
         _users = users;
         _logger = logger;
+        _ship = ship;
     }
 
     // GET /api/users/me — reads purely from the ClaimsPrincipal, no DB hit
@@ -124,6 +130,10 @@ public class UsersController : ControllerBase
         _logger.LogInformation("Role {Role} granted to {UserId} by {Actor}",
             role, id, User.Identity!.Name);
 
+        // Privilege change: who did what to whom, kept where it can be queried later.
+        _ship.Ship($"Role {role} granted to {user.UserName} ({id}) by {User.Identity!.Name}.",
+                   "Warning", nameof(UsersController));
+
         return NoContent();
     }
 
@@ -139,6 +149,13 @@ public class UsersController : ControllerBase
             string.Join("; ", result.Errors.Select(e => e.Description)));
 
         await _users.UpdateSecurityStampAsync(user);
+
+        _logger.LogInformation("Role {Role} revoked from {UserId} by {Actor}",
+            role, id, User.Identity!.Name);
+
+        _ship.Ship($"Role {role} revoked from {user.UserName} ({id}) by {User.Identity!.Name}.",
+                   "Warning", nameof(UsersController));
+
         return NoContent();
     }
 }

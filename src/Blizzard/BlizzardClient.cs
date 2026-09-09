@@ -8,10 +8,9 @@ namespace WarHack.Blizzard;
 
 public sealed class BlizzardClient : IBlizzardClient
 {
-    // Blizzard uses snake_case
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
-        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower // Blizzard uses snake_case
     };
 
     private readonly HttpClient _bClient;
@@ -55,12 +54,12 @@ public sealed class BlizzardClient : IBlizzardClient
                 return ApiResult.Ok((int)response.StatusCode);
 
             var body = await SafeReadAsync(response, ct);
-            _log.LogWarning("DELETE {Uri} -> {Status}. {Body}", uri, (int)response.StatusCode, body);
+            _log.LogWarning("Delete {Uri} -> {Status}. {Body}", uri, (int)response.StatusCode, body);
             return ApiResult.Fail($"{(int)response.StatusCode} {response.ReasonPhrase}", (int)response.StatusCode);
         }
         catch (Exception ex) when (NotCancellation(ex, ct))
         {
-            _log.LogError(ex, "DELETE {Uri} failed.", uri);
+            _log.LogError(ex, "Delete {Uri} failed.", uri);
             return ApiResult.Fail(ex.Message);
         }
     }
@@ -115,7 +114,7 @@ public sealed class BlizzardClient : IBlizzardClient
                 if (value is not null) values[key] = value;
             }
         }
-
+        // web utilities
         return QueryHelpers.AddQueryString(resourceUri.TrimStart('/'), values);
     }
 

@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
-using System.Xml.Linq;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using WarHack.Logging;
 using WarHack.Models;
 using WarHack.Options;
@@ -11,13 +9,11 @@ namespace WarHack.Controllers;
 
 public class HomeController : Controller
 {
-    private readonly ILogger<ILogShipHarbor> _logger;
-    private HomeControllerSettings _settings;
+    private readonly ILogger<HomeController> _logger;
 
-    public HomeController(ILogger<ILogShipHarbor> logger, IOptions<HomeControllerSettings> sOptions)
+    public HomeController(ILogger<HomeController> logger)
     {
         _logger = logger;
-        _settings = sOptions.Value;
     }
 
     [Route("/")]
@@ -26,6 +22,7 @@ public class HomeController : Controller
     [ApiExplorerSettings(IgnoreApi=true)]
     public IActionResult Index()
     {
+        _logger.LogInformation("Privacy page reached.");
         return View();
     }
 
