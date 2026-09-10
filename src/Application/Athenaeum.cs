@@ -5,6 +5,7 @@ using WarHack.Blizzard;
 using WarHack.Blizzard.Contracts;
 using WarHack.Models;
 using WarHack.Domain;
+using WarHack.Blizzard.Interfaces;
 
 namespace WarHack.Application;
 

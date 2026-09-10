@@ -23,14 +23,16 @@
             };
 
             // attempt to write entry to channel
-            bool tryQueue = _channel.Writer.TryWrite(entry);
+            bool tryWrite = _channel.Writer.TryWrite(entry);
 
-            // if (!_channel.Writer.TryWrite(entry))
+
             // if entry is not written to channel
-            if (tryQueue == false)
+            if (tryWrite == false)
             {
                 _logger.LogWarning("Log ship channel closed; row not queued: {Message}", message);
             }
+            // had this syntax but it reads more confusing
+            // if (!_channel.Writer.TryWrite(entry)){
         }
     }
 }

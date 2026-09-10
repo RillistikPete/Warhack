@@ -4,12 +4,12 @@ using Microsoft.OpenApi;
 using WarHack.Application;
 using WarHack.Blizzard;
 using WarHack.Blizzard.Auth;
+using WarHack.Blizzard.Interfaces;
 using WarHack.Data;
 using WarHack.Http;
 using WarHack.Identity;
 using WarHack.Logging;
 using WarHack.Middleware;
-using WarHack.Options;
 
 namespace WarHack.Configuration
 {
@@ -72,7 +72,6 @@ namespace WarHack.Configuration
                 });
             });
 
-            // Register clientel
             svcCollection.AddOptions<BlizzardOptions>()
                 .Bind(cf.GetSection(BlizzardOptions.SectionName))
                 .Validate(o => !string.IsNullOrWhiteSpace(o.ClientId), "Blizzard:ClientId is required.")
@@ -83,17 +82,17 @@ namespace WarHack.Configuration
             svcCollection.AddTransient<AsyncRequestHost>();
             svcCollection.AddTransient<BlizzardAuthHandler>();
 
-            svcCollection.AddSingleton<BlizzardTokenCache>();
-            svcCollection.AddTransient<IBlizzardTokenProvider, BlizzardTokenProvider>();
-            svcCollection.AddHttpClient<IBlizzardTokenClient, BlizzardTokenClient>(c =>
+            // Register clientel
+            svcCollection.AddHttpClient(BlizzardTokenService.HttpClientName, c =>
             {
                 c.Timeout = TimeSpan.FromSeconds(15);
             });
+            svcCollection.AddSingleton<IBlizzardTokenService, BlizzardTokenService>();
 
             svcCollection.AddHttpClient<IBlizzardClient, BlizzardClient>((sp, c) =>
             {
-                var blizzard = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<BlizzardOptions>>().Value;
-                c.BaseAddress = new Uri(blizzard.BaseUrl);
+                var bOptions = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<BlizzardOptions>>().Value;
+                c.BaseAddress = new Uri(bOptions.BaseUrl);
                 c.DefaultRequestHeaders.Add("Accept", "application/json");
             })
             .AddHttpMessageHandler<AsyncRequestHost>()

@@ -1,5 +1,6 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Headers;
+using WarHack.Blizzard.Interfaces;
 
 namespace WarHack.Blizzard.Auth;
 
@@ -8,30 +9,31 @@ namespace WarHack.Blizzard.Auth;
 /// </summary>
 public sealed class BlizzardAuthHandler : DelegatingHandler
 {
-    private readonly IBlizzardTokenProvider _tokenProvider;
+    private readonly IBlizzardTokenService _tokenService;
     private readonly ILogger<BlizzardAuthHandler> _log;
 
-    public BlizzardAuthHandler(IBlizzardTokenProvider tokens, ILogger<BlizzardAuthHandler> log)
+    public BlizzardAuthHandler(IBlizzardTokenService tokenService, ILogger<BlizzardAuthHandler> log)
     {
-        _tokenProvider = tokens;
+        _tokenService = tokenService;
         _log = log;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
     {
-        var getToken = await _tokenProvider.GetAccessTokenAsync(ct);
-        if (!getToken.IsSuccess || getToken.Value is null)
+        var token = await _tokenService.GetAccessTokenAsync(ct);
+        if (token is null)
         {
-            _log.LogError("Skipping {Uri}: {Error}", request.RequestUri, getToken.Error);
+            // No token means no point sending the request at all. The reason was
+            // already logged by the token service.
+            _log.LogError("Skipping {Uri}: no Blizzard token available.", request.RequestUri);
             return new HttpResponseMessage(HttpStatusCode.Unauthorized)
             {
                 RequestMessage = request,
                 ReasonPhrase = "Blizzard authentication failed"
             };
         }
-        // I used to use request.Headers.Add("Authorization", $"Bearer {getToken.Value}"),
-        // but that's really meant for custom string header values. Using this is a bit safer:
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", getToken.Value);
+
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await base.SendAsync(request, ct);
 
@@ -40,11 +42,11 @@ public sealed class BlizzardAuthHandler : DelegatingHandler
             return response;
         }
 
-        _tokenProvider.ClearToken();
-        var second = await _tokenProvider.GetAccessTokenAsync(ct);
+        // 401, so grab new token
+        _tokenService.ClearToken();
+        var refreshedToken = await _tokenService.GetAccessTokenAsync(ct);
 
-        if (!second.IsSuccess || second.Value is null ||
-            string.Equals(second.Value, getToken.Value, StringComparison.Ordinal))
+        if (refreshedToken is null || string.Equals(refreshedToken, token, StringComparison.Ordinal))
         {
             _log.LogError("401 from {Uri} and re-authentication did not produce a new token.", request.RequestUri);
             return response;
@@ -53,7 +55,7 @@ public sealed class BlizzardAuthHandler : DelegatingHandler
         _log.LogInformation("401 from {Uri}; refreshed the token and retrying once.", request.RequestUri);
         response.Dispose();
 
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", second.Value);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", refreshedToken);
         return await base.SendAsync(request, ct);
     }
 }

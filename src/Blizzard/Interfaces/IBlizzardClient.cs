@@ -1,6 +1,6 @@
 ﻿using WarHack.Domain;
 
-namespace WarHack.Blizzard;
+namespace WarHack.Blizzard.Interfaces;
 
 public interface IBlizzardClient
 {

@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
+using WarHack.Blizzard.Interfaces;
 using WarHack.Domain;
 
 namespace WarHack.Blizzard;
