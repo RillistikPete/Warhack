@@ -18,5 +18,12 @@ public sealed class BlizzardOptions
     /// Refresh the token this long before it actually expires.
     /// </summary>
     public TimeSpan TokenRefreshTime { get; init; } = TimeSpan.FromMinutes(2);
+
+    /// <summary>
+    /// How often the warm-up service proactively swaps in a new token. Blizzard
+    /// tokens last ~24h, so anything comfortably under that means no request ever
+    /// waits for a fetch.
+    /// </summary>
+    public TimeSpan TokenRefreshInterval { get; init; } = TimeSpan.FromHours(12);
     public TimeSpan CharacterCacheDuration { get; init; } = TimeSpan.FromMinutes(5);
 }

@@ -1,7 +1,6 @@
+﻿using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
-using Microsoft.Extensions.Options;
 using WarHack.Blizzard.Interfaces;
 using WarHack.Logging;
 
@@ -11,8 +10,8 @@ namespace WarHack.Blizzard.Auth;
 /// Singleton service that holds Blizzard token for app lifetime
 /// </summary>
 /// <remarks>
-/// Holding an HttpClient in a field here would pin one handler forever and quietly
-/// undo the reason for using the factory at all
+/// Holding an HttpClient in a field here would pin one handler forever,
+/// defeats purpose of using the factory at all
 /// </remarks>
 public sealed class BlizzardTokenService : IBlizzardTokenService
 {
@@ -67,18 +66,50 @@ public sealed class BlizzardTokenService : IBlizzardTokenService
                 return null;
             }
 
-            _accessToken = token.AccessToken;
-            _expiresAt = DateTimeOffset.UtcNow
-                .AddSeconds(token.ExpiresIn)
-                .Subtract(_options.TokenRefreshTime);
-
-            _log.LogInformation("Acquired Blizzard token, valid until {ExpiresAt:u}.", _expiresAt);
+            Store(token);
             return _accessToken;
         }
         finally
         {
             _semaphore.Release();
         }
+    }
+
+    /// <summary>
+    /// Proactive refresh. Fetches FIRST and only swaps on success, so a failed
+    /// refresh leaves the current (still valid) token in place. That is the
+    /// difference from ClearToken() + GetAccessTokenAsync(), which would throw
+    /// away a working token before finding out the new one is unavailable.
+    /// </summary>
+    public async Task<bool> RefreshAsync(CancellationToken ct = default)
+    {
+        await _semaphore.WaitAsync(ct);
+        try
+        {
+            var token = await FetchTokenAsync(ct);
+            if (token is null)
+            {
+                return false;
+            }
+
+            Store(token);
+            return true;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>Caller must hold the semaphore.</summary>
+    private void Store(BlizzardToken token)
+    {
+        _accessToken = token.AccessToken;
+        _expiresAt = DateTimeOffset.UtcNow
+            .AddSeconds(token.ExpiresIn)
+            .Subtract(_options.TokenRefreshTime);
+
+        _log.LogInformation("Acquired Blizzard token, valid until {ExpiresAt:u}.", _expiresAt);
     }
 
     private async Task<BlizzardToken?> FetchTokenAsync(CancellationToken ct)

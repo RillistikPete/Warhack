@@ -23,8 +23,6 @@ public sealed class BlizzardAuthHandler : DelegatingHandler
         var token = await _tokenService.GetAccessTokenAsync(ct);
         if (token is null)
         {
-            // No token means no point sending the request at all. The reason was
-            // already logged by the token service.
             _log.LogError("Skipping {Uri}: no Blizzard token available.", request.RequestUri);
             return new HttpResponseMessage(HttpStatusCode.Unauthorized)
             {

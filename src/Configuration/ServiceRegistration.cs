@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using WarHack.Application;
 using WarHack.Blizzard;
@@ -88,10 +89,12 @@ namespace WarHack.Configuration
                 c.Timeout = TimeSpan.FromSeconds(15);
             });
             svcCollection.AddSingleton<IBlizzardTokenService, BlizzardTokenService>();
+            // set token
+            svcCollection.AddHostedService<BlizzardTokenRetriever>();
 
             svcCollection.AddHttpClient<IBlizzardClient, BlizzardClient>((sp, c) =>
             {
-                var bOptions = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<BlizzardOptions>>().Value;
+                var bOptions = sp.GetRequiredService<IOptions<BlizzardOptions>>().Value;
                 c.BaseAddress = new Uri(bOptions.BaseUrl);
                 c.DefaultRequestHeaders.Add("Accept", "application/json");
             })

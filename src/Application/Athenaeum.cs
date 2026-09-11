@@ -11,11 +11,6 @@ namespace WarHack.Application;
 
 public sealed class Athenaeum : IAthenaeum
 {
-    /// <summary>
-    /// Slots that carry a permanent enchant in current retail. Blizzard doesn't
-    /// expose this, so it's a judgement call that shifts between expansions --
-    /// one list, one place to edit.
-    /// </summary>
     private static readonly string[] EnchantableSlots =
         ["BACK", "CHEST", "WRIST", "LEGS", "FEET", "FINGER_1", "FINGER_2", "MAIN_HAND", "OFF_HAND"];
 
@@ -43,11 +38,8 @@ public sealed class Athenaeum : IAthenaeum
         _log = log;
     }
 
-    public async Task<ApiResult<CharacterView>> GetCharacterAsync(
-        RealmSlug realm, CharacterName name, CancellationToken ct = default)
+    public async Task<ApiResult<CharacterView>> GetCharacterAsync(RealmSlug realm, CharacterName name, CancellationToken ct = default)
     {
-        // No trimming, lowercasing or slugifying here -- RealmSlug and
-        // CharacterName cannot exist in an un-normalized state.
         var cacheKey = $"character:{realm.Value}:{name.Value}";
 
         if (_cache.TryGetValue(cacheKey, out CharacterView? cached) && cached is not null)
