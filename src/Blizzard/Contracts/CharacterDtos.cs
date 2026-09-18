@@ -2,7 +2,7 @@
 
 // Partial maps
 
-/// <summary>Named reference used all over the API (race, class, spec, realm...).</summary>
+/// <summary>Named reference for blizzard API</summary>
 public sealed record NamedRef(int Id, string? Name, string? Slug);
 
 /// <summary>GET /profile/wow/character/{realmSlug}/{characterName}</summary>
@@ -32,8 +32,8 @@ public sealed record CharacterStatistics(
     StatValue? Agility,
     StatValue? Intellect,
     StatValue? Stamina,
-    RatedStat? MeleeCrit,
-    RatedStat? MeleeHaste,
+    RatedStat? CriticalStrike,
+    RatedStat? Haste,
     RatedStat? Mastery,
     double Versatility,
     double VersatilityDamageDoneBonus,

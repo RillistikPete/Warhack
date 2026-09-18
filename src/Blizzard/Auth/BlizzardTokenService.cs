@@ -7,11 +7,11 @@ using WarHack.Logging;
 namespace WarHack.Blizzard.Auth;
 
 /// <summary>
-/// Singleton service that holds Blizzard token for app lifetime
+/// Singleton service that holds Blizzard token for app lifetime.
 /// </summary>
 /// <remarks>
-/// Holding an HttpClient in a field here would pin one handler forever,
-/// defeats purpose of using the factory at all
+/// Holding an HttpClient in a field here will pin one handler forever,
+/// defeating the purpose of using the factory at all.
 /// </remarks>
 public sealed class BlizzardTokenService : IBlizzardTokenService
 {
@@ -24,11 +24,7 @@ public sealed class BlizzardTokenService : IBlizzardTokenService
     private string? _accessToken;
     private DateTimeOffset _expiresAt = DateTimeOffset.MinValue;
 
-    public BlizzardTokenService(
-        IHttpClientFactory clientFactory,
-        IOptions<BlizzardOptions> options,
-        ILogger<BlizzardTokenService> log,
-        ILogShipHarbor logBoat)
+    public BlizzardTokenService(IHttpClientFactory clientFactory, IOptions<BlizzardOptions> options, ILogger<BlizzardTokenService> log, ILogShipHarbor logBoat)
     {
         _clientFactory = clientFactory;
         _options = options.Value;
@@ -76,10 +72,7 @@ public sealed class BlizzardTokenService : IBlizzardTokenService
     }
 
     /// <summary>
-    /// Proactive refresh. Fetches FIRST and only swaps on success, so a failed
-    /// refresh leaves the current (still valid) token in place. That is the
-    /// difference from ClearToken() + GetAccessTokenAsync(), which would throw
-    /// away a working token before finding out the new one is unavailable.
+    /// Proactive refresh with retriever bg service
     /// </summary>
     public async Task<bool> RefreshAsync(CancellationToken ct = default)
     {
@@ -101,7 +94,10 @@ public sealed class BlizzardTokenService : IBlizzardTokenService
         }
     }
 
-    /// <summary>Caller must hold the semaphore.</summary>
+    /// <summary>
+    /// Stores token values
+    /// </summary>
+
     private void Store(BlizzardToken token)
     {
         _accessToken = token.AccessToken;

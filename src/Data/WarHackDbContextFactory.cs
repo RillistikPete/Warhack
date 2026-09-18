@@ -18,13 +18,11 @@ public class WarHackDbContextFactory : IDesignTimeDbContextFactory<WarHackDbCont
         var cs = config.GetConnectionString("WarHackDb");
 
         if (string.IsNullOrWhiteSpace(cs))
-            throw new InvalidOperationException(
-                "Connection string 'WarHackDb' was empty. " +
-                $"Base path: {Directory.GetCurrentDirectory()}");
+        {
+            throw new InvalidOperationException("Connection string 'WarHackDb' was empty. " + $"Base path: {Directory.GetCurrentDirectory()}");
+        }
 
-        var options = new DbContextOptionsBuilder<WarHackDbContext>()
-            .UseNpgsql(cs)
-            .Options;
+        var options = new DbContextOptionsBuilder<WarHackDbContext>().UseNpgsql(cs).Options;
 
         return new WarHackDbContext(options);
     }

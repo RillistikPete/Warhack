@@ -13,10 +13,7 @@ public class CharacterController : Controller
     private readonly ILogShipHarbor _ship;
     private readonly ILogger<CharacterController> _logger;
 
-    public CharacterController(
-        IAthenaeum athenaeum,
-        ILogShipHarbor ship,
-        ILogger<CharacterController> logger)
+    public CharacterController(IAthenaeum athenaeum, ILogShipHarbor ship, ILogger<CharacterController> logger)
     {
         _athenaeum = athenaeum;
         _ship = ship;
@@ -64,5 +61,13 @@ public class CharacterController : Controller
         }
 
         return View(result.Value);
+    }
+
+    [Authorize]
+    [HttpGet("toon")]
+    public IActionResult Toon()
+    {
+        _logger.LogInformation("Privacy page reached.");
+        return View();
     }
 }

@@ -33,20 +33,28 @@ public sealed record CharacterName
     /// <param name="input"></param>
     /// <returns>CharacterName</returns>
     /// <if>validation passes</if>
-    public static CharacterName From(string input) =>
-        TryFrom(input, out var name)
-            ? name
-            : throw new ArgumentException($"'{input}' is not a usable character name.", nameof(input));
+    public static CharacterName From(string input)
+    {
+        return TryFrom(input, out var name) ? name : throw new ArgumentException($"'{input}' is not a usable character name.", nameof(input));
+    }
 
     public static bool TryFrom([NotNullWhen(true)] string? input, [NotNullWhen(true)] out CharacterName? name)
     {
         name = null;
-        if (string.IsNullOrWhiteSpace(input)) return false;
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return false;
+        }
 
         var trimmed = input.Trim();
-        if (trimmed.Length > MaxLength) return false;
-
-        if (!trimmed.All(char.IsLetter)) return false;
+        if (trimmed.Length > MaxLength)
+        {
+            return false;
+        }
+        if (!trimmed.All(char.IsLetter))
+        {
+            return false;
+        }
 
         var lower = trimmed.ToLowerInvariant();
         var display = char.ToUpperInvariant(lower[0]) + lower[1..];

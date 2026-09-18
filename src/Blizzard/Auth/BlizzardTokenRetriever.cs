@@ -4,8 +4,7 @@ using WarHack.Blizzard.Interfaces;
 namespace WarHack.Blizzard.Auth;
 
 /// <summary>
-/// Keeps a valid Blizzard token in hand at all times
-/// Refreshes every 2 minutes
+/// Keeps a valid Blizzard token at all times
 /// </summary>
 public sealed class BlizzardTokenRetriever : BackgroundService
 {
@@ -26,7 +25,7 @@ public sealed class BlizzardTokenRetriever : BackgroundService
         {
             if (await _tokenService.GetAccessTokenAsync(cancellationToken) is null)
             {
-                _log.LogWarning("Blizzard token warm-up failed at startup. Next request will get a new one.");
+                _log.LogWarning("Blizzard token retrieval failed at startup, next request will get a new one.");
             }
 
             using var timer = new PeriodicTimer(_options.TokenRefreshInterval);

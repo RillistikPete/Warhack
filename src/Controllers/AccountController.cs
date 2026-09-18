@@ -15,11 +15,7 @@ public class AccountController : Controller
     private readonly ILogShipHarbor _logBoat;
     private readonly ILogger<AccountController> _logger;
 
-    public AccountController(
-        SignInManager<WarHackUser> signInManager,
-        UserManager<WarHackUser> userManager,
-        ILogShipHarbor ship,
-        ILogger<AccountController> logger)
+    public AccountController(SignInManager<WarHackUser> signInManager, UserManager<WarHackUser> userManager, ILogShipHarbor ship, ILogger<AccountController> logger)
     {
         _signInManager = signInManager;
         _userManager = userManager;
@@ -69,7 +65,10 @@ public class AccountController : Controller
     [HttpPost("register"), AllowAnonymous, ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterModel model)
     {
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
 
         var user = new WarHackUser
         {
@@ -82,7 +81,9 @@ public class AccountController : Controller
         if (!result.Succeeded)
         {
             foreach (var error in result.Errors)
+            {
                 ModelState.AddModelError(string.Empty, error.Description);
+            }
             return View(model);
         }
 

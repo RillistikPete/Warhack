@@ -7,7 +7,7 @@ using WarHack.Models;
 
 namespace WarHack.Controllers;
 
-/// <summary>A read-only window on the LogQueue table. Admin only.</summary>
+/// <summary>A window into the LogQueue table as a view. Admin only.</summary>
 [Route("logs"), Authorize(Policy = "IsAdmin")]
 public class LogsController : Controller
 {
@@ -15,7 +15,10 @@ public class LogsController : Controller
 
     private readonly WarHackDbContext _db;
 
-    public LogsController(WarHackDbContext db) => _db = db;
+    public LogsController(WarHackDbContext db)
+    {
+        _db = db;
+    }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(string? level, CancellationToken ct, int page = 1)
@@ -44,15 +47,9 @@ public class LogsController : Controller
             .Select(l => new LogRow(l.Id, l.DateAdded, l.Level, l.Logger, l.Message))
             .ToListAsync(ct);
 
-        var levelCounts = await _db.LogQueue
-            .GroupBy(l => l.Level)
-            .Select(g => new { Level = g.Key, Count = g.Count() })
-            .ToListAsync(ct);
+        var levelCounts = await _db.LogQueue.GroupBy(l => l.Level).Select(g => new { Level = g.Key, Count = g.Count() }).ToListAsync(ct);
 
-        var levels = levelCounts
-            .OrderByDescending(x => x.Count)
-            .Select(x => new LevelCount(x.Level, x.Count))
-            .ToList();
+        var levels = levelCounts.OrderByDescending(x => x.Count).Select(x => new LevelCount(x.Level, x.Count)).ToList();
 
         return View(new LogsPageView(rows, levels, level, page, PageSize, totalRows));
     }

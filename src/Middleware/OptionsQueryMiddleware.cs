@@ -15,8 +15,6 @@ public class OptionsQueryMiddleware
     {
         _next = next;
     }
-
-    // Test with https://localhost:5001/Privacy/?option=Hello
     public async Task Invoke(HttpContext httpContext)
     {
         var option = httpContext.Request.Query["option"];

@@ -51,7 +51,6 @@ public sealed class LogRetentionService : BackgroundService
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<WarHackDbContext>();
 
-            // nothing is tracked
             var deleted = await db.LogQueue.Where(l => l.DateAdded < cutoff).ExecuteDeleteAsync(ct);
 
             if (deleted > 0)

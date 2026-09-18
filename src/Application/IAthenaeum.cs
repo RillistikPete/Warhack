@@ -4,11 +4,10 @@ using WarHack.Domain;
 namespace WarHack.Application;
 
 /// <summary>
-/// The library: one place the app asks for domain data, whatever mix of clients
-/// it takes to assemble it. Controllers depend on this, never on IBlizzardClient.
+/// Library for character data
 /// </summary>
 public interface IAthenaeum
 {
-    /// <summary>Profile, stats and gear for one character, composed into a single view.</summary>
+    /// <summary>Profile, stats and gear by character realm and name</summary>
     Task<ApiResult<CharacterView>> GetCharacterAsync(RealmSlug realm, CharacterName name, CancellationToken ct = default);
 }

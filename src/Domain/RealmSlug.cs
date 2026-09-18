@@ -12,21 +12,25 @@ public sealed partial record RealmSlug
 
     public string Value { get; }
 
-    public static RealmSlug From(string input) =>
-        TryFrom(input, out var slug)
-            ? slug
-            : throw new ArgumentException($"'{input}' is not a usable realm name.", nameof(input));
+    public static RealmSlug From(string input)
+    {
+        return TryFrom(input, out var slug) ? slug : throw new ArgumentException($"'{input}' is not a valid realm name.", nameof(input));
+    }
 
     public static bool TryFrom([NotNullWhen(true)] string? input, [NotNullWhen(true)] out RealmSlug? slug)
     {
         slug = null;
-        if (string.IsNullOrWhiteSpace(input)) return false;
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return false;
+        }
 
-        var normalized = input.Trim().ToLowerInvariant()
-            .Replace("'", "")
-            .Replace(" ", "-");
+        var normalized = input.Trim().ToLowerInvariant().Replace("'", "").Replace(" ", "-");
 
-        if (!SlugPattern().IsMatch(normalized)) return false;
+        if (!SlugPattern().IsMatch(normalized))
+        {
+            return false;
+        }
 
         slug = new RealmSlug(normalized);
         return true;

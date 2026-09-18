@@ -11,6 +11,7 @@ using WarHack.Http;
 using WarHack.Identity;
 using WarHack.Logging;
 using WarHack.Middleware;
+using WarHack.Security;
 
 namespace WarHack.Configuration
 {
@@ -22,7 +23,15 @@ namespace WarHack.Configuration
 
             svcCollection.AddControllersWithViews();
             svcCollection.AddRazorPages();
-            svcCollection.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
+            // api key 
+            svcCollection.AddOptions<ApiKeyOptions>(ApiKeyDefaults.Scheme)
+                .Bind(cf.GetSection(ApiKeyOptions.SectionName))
+                .Validate(o => o.Clients.Values.Any(x => !string.IsNullOrWhiteSpace(x.Key)), "No header API keys configured.")
+                .ValidateOnStart();
+
+            svcCollection.AddAuthentication()
+                .AddBearerToken(IdentityConstants.BearerScheme)
+                .AddScheme<ApiKeyOptions, ApiKeyAuthenticationHandler>(ApiKeyDefaults.Scheme, _ => { });
             svcCollection.AddAuthorizationBuilder();
 
             var dbConn = cf.GetConnectionString("WarHackDb");
@@ -57,12 +66,11 @@ namespace WarHack.Configuration
             svcCollection.Configure<LogRetentionOptions>(cf.GetSection(LogRetentionOptions.SectionName));
             svcCollection.AddHostedService<LogRetentionService>();
 
-            // Swagger
             svcCollection.AddSwaggerGen(options =>
             {
                 options.AddSecurityDefinition("apikey", new OpenApiSecurityScheme
                 {
-                    Description = "Swagger API Security WH",
+                    Description = "Paste the WarHack API key. Sent as the x-api-key header.",
                     Type = SecuritySchemeType.ApiKey,
                     Name = "x-api-key",
                     In = ParameterLocation.Header
@@ -78,18 +86,16 @@ namespace WarHack.Configuration
                 .Validate(o => !string.IsNullOrWhiteSpace(o.ClientId), "Blizzard:ClientId is required.")
                 .Validate(o => !string.IsNullOrWhiteSpace(o.ClientSecret), "Blizzard:ClientSecret is required.")
                 .Validate(o => Uri.IsWellFormedUriString(o.BaseUrl, UriKind.Absolute), "Blizzard:BaseUrl must be an absolute URI.")
-                .ValidateOnStart(); // will throw on startup, or else get creds error on first request.
+                .ValidateOnStart(); // throw on startup, or else get creds error on first request.
 
             svcCollection.AddTransient<AsyncRequestHost>();
             svcCollection.AddTransient<BlizzardAuthHandler>();
 
-            // Register clientel
             svcCollection.AddHttpClient(BlizzardTokenService.HttpClientName, c =>
             {
                 c.Timeout = TimeSpan.FromSeconds(15);
             });
             svcCollection.AddSingleton<IBlizzardTokenService, BlizzardTokenService>();
-            // set token
             svcCollection.AddHostedService<BlizzardTokenRetriever>();
 
             svcCollection.AddHttpClient<IBlizzardClient, BlizzardClient>((sp, c) =>

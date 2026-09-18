@@ -14,23 +14,14 @@ public sealed class Athenaeum : IAthenaeum
     private static readonly string[] EnchantableSlots =
         ["BACK", "CHEST", "WRIST", "LEGS", "FEET", "FINGER_1", "FINGER_2", "MAIN_HAND", "OFF_HAND"];
 
-    /// <summary>
-    /// Serializes concurrent lookups of the SAME character so a cold cache plus
-    /// ten simultaneous viewers costs three API calls, not thirty.
-    /// </summary>
-    private static readonly SemaphoreSlim[] KeyLocks =
-        [.. Enumerable.Range(0, 32).Select(_ => new SemaphoreSlim(1, 1))];
+    private static readonly SemaphoreSlim[] KeyLocks = [.. Enumerable.Range(0, 32).Select(_ => new SemaphoreSlim(1, 1))];
 
     private readonly IBlizzardClient _blizzard;
     private readonly IMemoryCache _cache;
     private readonly BlizzardOptions _options;
     private readonly ILogger<Athenaeum> _log;
 
-    public Athenaeum(
-        IBlizzardClient blizzard,
-        IMemoryCache cache,
-        IOptions<BlizzardOptions> options,
-        ILogger<Athenaeum> log)
+    public Athenaeum(IBlizzardClient blizzard, IMemoryCache cache, IOptions<BlizzardOptions> options, ILogger<Athenaeum> log)
     {
         _blizzard = blizzard;
         _cache = cache;
@@ -54,12 +45,12 @@ public sealed class Athenaeum : IAthenaeum
         {
             // Someone may have populated it while we queued for the lock.
             if (_cache.TryGetValue(cacheKey, out cached) && cached is not null)
+            {
                 return ApiResult<CharacterView>.Ok(cached);
+            }
 
             var result = await FetchAsync(realm, name, ct);
 
-            // Only successes are cached. A 404 today may be a transfer that
-            // resolves in a minute, and errors should never be sticky.
             if (result.IsSuccess && result.Value is not null)
             {
                 _cache.Set(cacheKey, result.Value, new MemoryCacheEntryOptions
@@ -77,12 +68,10 @@ public sealed class Athenaeum : IAthenaeum
         }
     }
 
-    private async Task<ApiResult<CharacterView>> FetchAsync(
-        RealmSlug realm, CharacterName name, CancellationToken ct)
+    private async Task<ApiResult<CharacterView>> FetchAsync(RealmSlug realm, CharacterName name, CancellationToken ct)
     {
         var root = $"profile/wow/character/{realm.Value}/{name.UriSegment}";
 
-        // Three independent GETs -- fire them together rather than in sequence.
         var summaryTask = _blizzard.GetAsync<CharacterSummary>(root, ct: ct);
         var statsTask = _blizzard.GetAsync<CharacterStatistics>($"{root}/statistics", ct: ct);
         var gearTask = _blizzard.GetAsync<CharacterEquipment>($"{root}/equipment", ct: ct);
@@ -92,26 +81,17 @@ public sealed class Athenaeum : IAthenaeum
         var summary = summaryTask.Result;
         if (!summary.IsSuccess || summary.Value is null)
         {
-            // 404 here is the normal "no such character" case, not a fault.
-            _log.LogInformation("Character lookup failed for {Realm}/{Name}: {Error}",
-                realm.Value, name.Value, summary.Error);
-            return ApiResult<CharacterView>.Fail(
-                summary.Status == 404
-                    ? $"No character named \"{name.Display}\" found on {realm.Value}."
-                    : summary.Error ?? "Character lookup failed.",
-                summary.Status);
+            _log.LogInformation("Character lookup failed for {Realm}/{Name}: {Error}", realm.Value, name.Value, summary.Error);
+            return ApiResult<CharacterView>.Fail(summary.Status == 404 ? $"No character named \"{name.Display}\" found on {realm.Value}." : summary.Error ?? "Character lookup failed.", summary.Status);
         }
 
-        // Stats and gear are nice-to-have: render what came back rather than
-        // failing the whole page because one sub-resource was unavailable.
         var stats = statsTask.Result.IsSuccess ? statsTask.Result.Value : null;
         var gear = gearTask.Result.IsSuccess ? gearTask.Result.Value : null;
 
         return ApiResult<CharacterView>.Ok(Compose(summary.Value, stats, gear, realm));
     }
 
-    private static CharacterView Compose(
-        CharacterSummary s, CharacterStatistics? st, CharacterEquipment? eq, RealmSlug realm)
+    private static CharacterView Compose(CharacterSummary s, CharacterStatistics? st, CharacterEquipment? eq, RealmSlug realm)
     {
         var items = eq?.EquippedItems ?? [];
 
@@ -132,7 +112,6 @@ public sealed class Athenaeum : IAthenaeum
                     .Where(d => !string.IsNullOrWhiteSpace(d))
                     .Select(d => d!)
                     .ToList(),
-                // A socket with no `item` is an empty socket -- free stats going unclaimed.
                 EmptySocketCount: (i.Sockets ?? []).Count(x => x.Item is null)))
             .OrderByDescending(g => g.ItemLevel)
             .ToList();
@@ -163,9 +142,7 @@ public sealed class Athenaeum : IAthenaeum
             AchievementPoints = s.AchievementPoints,
             AverageItemLevel = s.AverageItemLevel,
             EquippedItemLevel = s.EquippedItemLevel,
-            LastLogin = s.LastLoginTimestamp > 0
-                ? DateTimeOffset.FromUnixTimeMilliseconds(s.LastLoginTimestamp)
-                : null,
+            LastLogin = s.LastLoginTimestamp > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(s.LastLoginTimestamp) : null,
             Stats = BuildStats(st),
             Gear = gear,
             MissingEnchants = missingEnchants,
@@ -175,7 +152,10 @@ public sealed class Athenaeum : IAthenaeum
 
     private static List<StatLine> BuildStats(CharacterStatistics? st)
     {
-        if (st is null) return [];
+        if (st is null)
+        {
+            return [];
+        }
 
         var lines = new List<StatLine>
         {
@@ -187,13 +167,11 @@ public sealed class Athenaeum : IAthenaeum
         AddPrimary(lines, "Agility", st.Agility);
         AddPrimary(lines, "Intellect", st.Intellect);
         AddPrimary(lines, "Stamina", st.Stamina);
-
-        AddRated(lines, "Crit", st.MeleeCrit);
-        AddRated(lines, "Haste", st.MeleeHaste);
+        AddRated(lines, "Crit", st.CriticalStrike);
+        AddRated(lines, "Haste", st.Haste);
         AddRated(lines, "Mastery", st.Mastery);
 
-        // Versatility is a bare rating in the payload, with its percentage in a
-        // separate field -- the one secondary that isn't shaped like the others.
+        // Versatility is percentage 0-100
         if (st.Versatility > 0)
         {
             lines.Add(new StatLine("Versatility",
@@ -205,10 +183,8 @@ public sealed class Athenaeum : IAthenaeum
 
         return lines;
 
-        // Local functions: Blizzard repeats exactly two stat shapes, so these are
-        // the two ways to turn one into a display line. `static` means they capture
-        // nothing from the enclosing scope -- the list is passed in explicitly --
-        // so the compiler guarantees no closure is allocated.
+        // Local functions
+        // Two blizzard stat shapes:
         static void AddPrimary(List<StatLine> into, string label, StatValue? v)
         {
             if (v is not null && v.Effective > 0)
@@ -218,7 +194,9 @@ public sealed class Athenaeum : IAthenaeum
         static void AddRated(List<StatLine> into, string label, RatedStat? v)
         {
             if (v is not null && v.Rating > 0)
+            {
                 into.Add(new StatLine(label, $"{v.Value:0.##}%  ({v.Rating:N0})"));
+            }
         }
     }
 }

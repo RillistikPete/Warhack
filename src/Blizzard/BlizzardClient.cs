@@ -52,7 +52,9 @@ public sealed class BlizzardClient : IBlizzardClient
         {
             using var response = await _bClient.DeleteAsync(uri, ct);
             if (response.IsSuccessStatusCode)
+            {
                 return ApiResult.Ok((int)response.StatusCode);
+            }
 
             var body = await SafeReadAsync(response, ct);
             _log.LogWarning("Delete {Uri} -> {Status}. {Body}", uri, (int)response.StatusCode, body);
