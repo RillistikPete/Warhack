@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WarHack.Application;
-using WarHack.Logging;
 using WarHack.Domain;
+using WarHack.Logging;
+using WarHack.Security;
 
 namespace WarHack.Controllers;
 
 [Route("character")]
+[Authorize(AuthenticationSchemes = ApiKeyDefaults.Scheme, Roles = "Characters")]
 public class CharacterController : Controller
 {
     private readonly IAthenaeum _athenaeum;

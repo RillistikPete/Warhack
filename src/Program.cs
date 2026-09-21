@@ -30,6 +30,9 @@ public class Program
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
+        app.UseWhen(
+            ctx => !ctx.Request.Path.StartsWithSegments("/api"),
+            branch => branch.UseStatusCodePagesWithReExecute("/Home/Error/{0}"));
         app.UseRouting();
 
         app.UseAuthentication();

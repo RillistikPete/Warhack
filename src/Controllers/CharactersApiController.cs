@@ -13,7 +13,7 @@ namespace WarHack.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/characters")]
-[Authorize(AuthenticationSchemes = ApiKeyDefaults.Scheme, Roles = "Characters,Diagnostics")]
+[Authorize(AuthenticationSchemes = ApiKeyDefaults.Scheme, Roles = "Characters")]
 [Produces("application/json")]
 public class CharactersApiController : ControllerBase
 {

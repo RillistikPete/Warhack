@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WarHack.Data;
 using WarHack.Logging;
 using WarHack.Models;
+using WarHack.Security;
 
 namespace WarHack.Controllers;
 

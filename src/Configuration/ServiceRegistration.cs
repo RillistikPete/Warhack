@@ -23,16 +23,19 @@ namespace WarHack.Configuration
 
             svcCollection.AddControllersWithViews();
             svcCollection.AddRazorPages();
-            // api key 
+
+            // require api key 
             svcCollection.AddOptions<ApiKeyOptions>(ApiKeyDefaults.Scheme)
                 .Bind(cf.GetSection(ApiKeyOptions.SectionName))
                 .Validate(o => o.Clients.Values.Any(x => !string.IsNullOrWhiteSpace(x.Key)), "No header API keys configured.")
                 .ValidateOnStart();
 
             svcCollection.AddAuthentication()
-                .AddBearerToken(IdentityConstants.BearerScheme)
                 .AddScheme<ApiKeyOptions, ApiKeyAuthenticationHandler>(ApiKeyDefaults.Scheme, _ => { });
-            svcCollection.AddAuthorizationBuilder();
+
+            svcCollection.AddAuthorizationBuilder()
+                .AddPolicy("IsAdmin", p => p.RequireRole("Admin"))
+                .AddPolicy("HasBattleTag", p => p.RequireClaim("battletag"));
 
             var dbConn = cf.GetConnectionString("WarHackDb");
             svcCollection.AddDbContext<WarHackDbContext>(db => db.UseNpgsql(dbConn));
@@ -47,17 +50,18 @@ namespace WarHack.Configuration
             .AddRoles<IdentityRole>()
             .AddDefaultTokenProviders();
 
+            svcCollection.ConfigureApplicationCookie(o =>
+            {
+                o.LoginPath = "/Account/Login";
+                o.AccessDeniedPath = "/Home/AccessDenied";
+                o.LogoutPath = "/Account/Logout";
+            });
+
             svcCollection.AddScoped<IdentitySeeder>();
             svcCollection.AddScoped<IUserClaimsPrincipalFactory<WarHackUser>, AppUserClaimsPrincipalFactory>();
 
             svcCollection.AddMemoryCache(o => o.SizeLimit = 1024);
             svcCollection.AddScoped<IAthenaeum, Athenaeum>();
-
-            svcCollection.AddAuthorization(o =>
-            {
-                o.AddPolicy("IsAdmin", p => p.RequireRole("Admin"));
-                o.AddPolicy("HasBattleTag", p => p.RequireClaim("battletag"));
-            });
 
             // Logging
             svcCollection.AddSingleton<LogShipChannel>();
@@ -70,15 +74,12 @@ namespace WarHack.Configuration
             {
                 options.AddSecurityDefinition("apikey", new OpenApiSecurityScheme
                 {
-                    Description = "Paste the WarHack API key. Sent as the x-api-key header.",
+                    Description = "Swagger API key required for authorization. Sent as the x-api-key header.",
                     Type = SecuritySchemeType.ApiKey,
                     Name = "x-api-key",
                     In = ParameterLocation.Header
                 });
-                options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-                {
-                    [new OpenApiSecuritySchemeReference("apikey", document)] = []
-                });
+                options.OperationFilter<SwaggerApiSecurityOperationFilter>();
             });
 
             svcCollection.AddOptions<BlizzardOptions>()

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using WarHack.Logging;
@@ -32,12 +33,24 @@ public class HomeController : Controller
     {
         return View();
     }
-    
-    [HttpGet]
+
+    [Route("Home/Error/{code:int?}")]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
+    public IActionResult Error(int? code)
     {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        var reExecute = HttpContext.Features.Get<IStatusCodeReExecuteFeature>();
+
+        return View(new ErrorViewModel
+        {
+            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+            StatusCode = code ?? HttpContext.Response.StatusCode,
+            OriginalPath = reExecute?.OriginalPath
+        });
+    }
+
+    public IActionResult AccessDenied()
+    {
+        return View();
     }
 }
 

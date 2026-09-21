@@ -40,10 +40,14 @@ public sealed class BlizzardClient : IBlizzardClient
     }
 
     public async Task<ApiResult<TResponse>> PostAsync<TRequest, TResponse>(string resourceUri, TRequest body, CancellationToken ct = default)
-        => await SendWithBodyAsync<TRequest, TResponse>(HttpMethod.Post, resourceUri, body, ct);
+    {
+        return await SendWithBodyAsync<TRequest, TResponse>(HttpMethod.Post, resourceUri, body, ct);
+    }
 
     public async Task<ApiResult<TResponse>> PutAsync<TRequest, TResponse>(string resourceUri, TRequest body, CancellationToken ct = default)
-        => await SendWithBodyAsync<TRequest, TResponse>(HttpMethod.Put, resourceUri, body, ct);
+    {
+        return await SendWithBodyAsync<TRequest, TResponse>(HttpMethod.Put, resourceUri, body, ct);
+    }
 
     public async Task<ApiResult> DeleteAsync(string resourceUri, IReadOnlyDictionary<string, string?>? query = null, CancellationToken ct = default)
     {

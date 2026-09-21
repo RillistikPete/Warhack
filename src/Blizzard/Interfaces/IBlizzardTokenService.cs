@@ -16,4 +16,16 @@ public interface IBlizzardTokenService
     Task<bool> RefreshAsync(CancellationToken ct = default);
 
     void ClearToken();
+
+    /// <summary>
+    /// True when a cached token is present and not yet past its refresh deadline.
+    /// Reads the cache only; never triggers a fetch.
+    /// </summary>
+    bool HasToken { get; }
+
+    /// <summary>
+    /// When the cached token stops being used, or null if there is none.
+    /// Reads the cache only; never triggers a fetch.
+    /// </summary>
+    DateTimeOffset? ExpiresAt { get; }
 }

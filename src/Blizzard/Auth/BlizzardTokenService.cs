@@ -34,6 +34,17 @@ public sealed class BlizzardTokenService : IBlizzardTokenService
 
     private bool HasValidToken => _accessToken is not null && DateTimeOffset.UtcNow < _expiresAt;
 
+    /// <inheritdoc />
+    public bool HasToken => HasValidToken;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Read without taking the semaphore. A caller racing a refresh can see a
+    /// slightly stale expiry, which is acceptable for reporting and not worth
+    /// making every request wait on the gate.
+    /// </remarks>
+    public DateTimeOffset? ExpiresAt => _accessToken is null ? null : _expiresAt;
+
     public void ClearToken()
     {
         _accessToken = null;
