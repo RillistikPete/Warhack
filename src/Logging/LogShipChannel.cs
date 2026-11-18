@@ -19,8 +19,8 @@ namespace WarHack.Logging
         public ChannelReader<LogQueue> Reader => _channel.Reader;
 
         /// <summary>
-        /// checks channel count for health endpoint
-        /// near <see cref="Capacity"/> means rows are being dropped
+        /// Checks channel count for health endpoint.
+        /// When it's near <see cref="Capacity"/>, means rows are being dropped.
         /// </summary>
         public int QueueDepth => _channel.Reader.CanCount ? _channel.Reader.Count : -1;
     }

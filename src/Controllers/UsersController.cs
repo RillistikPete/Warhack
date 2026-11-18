@@ -13,6 +13,7 @@ namespace WarHack.Controllers;
 [ApiController]
 [Route("api/users")]
 [Authorize]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class UsersController : ControllerBase
 {
     private readonly UserManager<WarHackUser> _users;

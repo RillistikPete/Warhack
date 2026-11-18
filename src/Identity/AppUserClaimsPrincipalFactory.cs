@@ -8,10 +8,7 @@ namespace WarHack.Identity;
 
 public class AppUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<WarHackUser, IdentityRole>
 {
-    public AppUserClaimsPrincipalFactory(
-        UserManager<WarHackUser> userManager,
-        RoleManager<IdentityRole> roleManager,
-        IOptions<IdentityOptions> options)
+    public AppUserClaimsPrincipalFactory(UserManager<WarHackUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<IdentityOptions> options)
         : base(userManager, roleManager, options) { }
 
     protected override async Task<ClaimsIdentity> GenerateClaimsAsync(WarHackUser user)

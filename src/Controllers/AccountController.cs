@@ -8,6 +8,7 @@ using WarHack.Models;
 namespace WarHack.Controllers;
 
 [Route("account")]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class AccountController : Controller
 {
     private readonly SignInManager<WarHackUser> _signInManager;

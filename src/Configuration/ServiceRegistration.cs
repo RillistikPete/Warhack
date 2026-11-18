@@ -87,7 +87,7 @@ namespace WarHack.Configuration
                 .Validate(o => !string.IsNullOrWhiteSpace(o.ClientId), "Blizzard:ClientId is required.")
                 .Validate(o => !string.IsNullOrWhiteSpace(o.ClientSecret), "Blizzard:ClientSecret is required.")
                 .Validate(o => Uri.IsWellFormedUriString(o.BaseUrl, UriKind.Absolute), "Blizzard:BaseUrl must be an absolute URI.")
-                .ValidateOnStart(); // throw on startup, or else get creds error on first request.
+                .ValidateOnStart();
 
             svcCollection.AddTransient<AsyncRequestHost>();
             svcCollection.AddTransient<BlizzardAuthHandler>();

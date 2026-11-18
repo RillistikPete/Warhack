@@ -1,5 +1,8 @@
 ﻿namespace WarHack;
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using WarHack.Configuration;
@@ -40,6 +43,23 @@ public class Program
 
         if (app.Environment.IsDevelopment())
         {
+            app.Use(async (ctx, next) =>
+            {
+                if (ctx.Request.Path.StartsWithSegments("/swagger"))
+                {
+                    var auth = ctx.RequestServices.GetRequiredService<IAuthorizationService>();
+                    var result = await auth.AuthorizeAsync(ctx.User, resource: null, policyName: "IsAdmin");
+
+                    if (!result.Succeeded)
+                    {
+                        await ctx.ChallengeAsync(IdentityConstants.ApplicationScheme);
+                        return;
+                    }
+                }
+
+                await next();
+            });
+
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
@@ -50,7 +70,7 @@ public class Program
 
         app.MapDefaultControllerRoute();
         app.MapRazorPages();
-        app.MapGet("/claimWelcome", (ClaimsPrincipal user) => $"Hello {user.Identity!.Name}")
+        app.MapGet("/welcome", (ClaimsPrincipal user) => $"Hello {user.Identity!.Name}")
            .RequireAuthorization();
 
         await app.RunAsync();

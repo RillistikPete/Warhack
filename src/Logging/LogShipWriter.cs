@@ -22,7 +22,6 @@ public sealed class LogShipWriter : BackgroundService
     {
         try
         {
-            // Returns false once the writer is completed
             while (await _channel.Reader.WaitToReadAsync(stoppingToken))
             {
                 var batch = SendUpToBatch();
